@@ -16,29 +16,28 @@ library(tidyverse)
 
 ```
 
-Read in sample table and make the column names R friendly. We'll have to switch them back at the end but it's just a click of a button I promise
-```{r}
+Read in sample table and make the column names R friendly with clean_names. 
 
+We'll have to switch them back to the column names expected by ISA at the end
+```{r}
 
 
 s_OSD_508 <- read.delim("~/Desktop/OSD-508-ISA/s_GLDS-508 copy.txt")  %>% clean_names()
 
 
-
-
 ```
 
-This workflow assumes you have already create the irradiation protocol itself, so the investigation file already reports the existence of a Protocol REF column for 'irradiation protocol'
+This workflow assumes you have already create the irradiation protocol itself, so the investigation file (i_investigation.txt) already reports the existence of a Protocol REF column for 'irradiation protocol'
 
+Adding parameter: absorbed radiation dose, the associated units column and ontology columns.
 ```{r}
 
-
-# Adding column based on other column:
+# Adding column based on other column. In this case 'factor_value_ionizing_radiation' is the existing column we are using as a key. The new parameters are the names after mutate()
 s_OSD_508_copy <- s_OSD_508 %>%
   mutate(absorbed_radiation_dose = case_when(
     endsWith(factor_value_ionizing_radiation, "non-irradiated") ~ "",
     endsWith(factor_value_ionizing_radiation, "Cobalt-60 gamma radiation") ~ "100"
-    ),.after = protocol_ref_1) %>% #You need to make sure this is the name of your column that contains 'irradiation protocol'
+    ),.after = protocol_ref_1) %>% #You need to make sure this is the name of your column that contains 'irradiation protocol' or this code chunk will put your new parameters in the wrong place
     mutate(absorbed_radiation_dose_unit = case_when(
     endsWith(factor_value_ionizing_radiation, "non-irradiated") ~ "Not Applicable",
     endsWith(factor_value_ionizing_radiation, "Cobalt-60 gamma radiation") ~ "gray"
@@ -54,4 +53,6 @@ s_OSD_508_copy <- s_OSD_508 %>%
 
 
 ```
+
+
 
