@@ -1,0 +1,57 @@
+---
+title: "single_ion_assay_table_curation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load Packages
+```{r}
+
+library(readxl)
+library(janitor)
+library(tidyverse)
+
+```
+
+Read in sample table and make the column names R friendly. We'll have to switch them back at the end but it's just a click of a button I promise
+```{r}
+
+
+
+s_OSD_508 <- read.delim("~/Desktop/OSD-508-ISA/s_GLDS-508 copy.txt")  %>% clean_names()
+
+
+
+
+```
+
+This workflow assumes you have already create the irradiation protocol itself, so the investigation file already reports the existence of a Protocol REF column for 'irradiation protocol'
+
+```{r}
+
+
+# Adding column based on other column:
+s_OSD_508_copy <- s_OSD_508 %>%
+  mutate(absorbed_radiation_dose = case_when(
+    endsWith(factor_value_ionizing_radiation, "non-irradiated") ~ "",
+    endsWith(factor_value_ionizing_radiation, "Cobalt-60 gamma radiation") ~ "100"
+    ),.after = protocol_ref_1) %>% #You need to make sure this is the name of your column that contains 'irradiation protocol'
+    mutate(absorbed_radiation_dose_unit = case_when(
+    endsWith(factor_value_ionizing_radiation, "non-irradiated") ~ "Not Applicable",
+    endsWith(factor_value_ionizing_radiation, "Cobalt-60 gamma radiation") ~ "gray"
+    ),.after = absorbed_radiation_dose) %>%
+    mutate(absorbed_radiation_dose_unit_TSREF = case_when(
+    endsWith(factor_value_ionizing_radiation, "non-irradiated") ~ "NCIT",
+    endsWith(factor_value_ionizing_radiation, "Cobalt-60 gamma radiation") ~ "UO"
+    ),.after = absorbed_radiation_dose_unit) %>%
+    mutate(absorbed_radiation_dose_unit_TSACCESSION = case_when(
+    endsWith(factor_value_ionizing_radiation, "non-irradiated") ~ "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C48660",
+    endsWith(factor_value_ionizing_radiation, "Cobalt-60 gamma radiation") ~ "http://purl.obolibrary.org/obo/UO_0000134"
+    ), .after= absorbed_radiation_dose_unit_TSREF)
+
+
+```
+
